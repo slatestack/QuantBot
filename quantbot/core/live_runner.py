@@ -122,6 +122,16 @@ class LiveRunner:
             self._sync_from_broker()
         else:
             self._restore_state()
+        # Decide on the latest completed bar now instead of waiting a whole bar: the warm-up
+        # replay consumed it with order generation off. Orders fill on the next bar.
+        sysm = self.system
+        if sysm.last_data_ts is not None and sysm.breaker.trading_allowed and sysm.bar_count >= sysm.warmup_bars:
+            sysm.rebalance(sysm.last_data_ts)
+            self.bus.drain()
+            log.info("start-up rebalance on %s close: %d open orders", sysm.last_data_ts.date(),
+                     len(sysm.oms.open_orders()))
+            if self.broker == "sim":
+                self.save_state()
 
     # ------------------------------------------------------ persistence (sim paper book)
     def _state_file(self) -> Path:
@@ -136,7 +146,14 @@ class LiveRunner:
                "initial_cash": pf.initial_cash, "breaker": self.system.breaker.state.value,
                "positions": {s: {"quantity": p.quantity, "avg_price": p.avg_price, "realized_pnl": p.realized_pnl,
                                  "last_settle": None if p.last_settle != p.last_settle else p.last_settle}
-                             for s, p in pf.positions.items() if not p.is_flat}}
+                             for s, p in pf.positions.items() if not p.is_flat},
+               "last_bar": str(self.system.last_data_ts),
+               "target_weights": {k: v for k, v in (self.system.targets_log[-1] if self.system.targets_log else {}).items()
+                                  if k != "ts"},
+               "signals": self.system.aggregator.combined(),
+               "open_orders": [{"order_id": o.order_id, "symbol": o.symbol, "quantity": o.quantity,
+                                "filled": o.filled_quantity, "status": o.status.value, "tag": o.tag,
+                                "decision_price": o.decision_price} for o in self.system.oms.open_orders()]}
         tmp = self._state_file().with_suffix(".tmp")
         tmp.write_text(json.dumps(doc, indent=2))
         tmp.replace(self._state_file())
@@ -224,7 +241,9 @@ class LiveRunner:
             it += 1
             if max_iterations is not None and it >= max_iterations:
                 break
-            self.clock.sleep(poll - (time.time() - t0))
+            deadline = t0 + poll
+            while self.running and time.time() < deadline:  # wake promptly on SIGINT/SIGTERM
+                self.clock.sleep(min(1.0, deadline - time.time()))
         self.shutdown()
 
     def stop(self) -> None:
