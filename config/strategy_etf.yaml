@@ -1,0 +1,43 @@
+# Cross-asset ETF book on REAL daily data (Yahoo public chart API; research/paper use).
+# Commodity exposure via ETFs here; switch universe.futures on with an IBKR futures data feed.
+system:
+  name: quantbot-etf
+  initial_capital: 1000000
+  rebalance_every: 1
+  rebalance_threshold: 0.015
+  warmup_bars: 260
+
+universe:
+  equities: [SPY, QQQ, IWM, EFA, EEM, TLT, IEF, LQD, GLD, SLV, USO, DBA, DBC, XLE, XOM, CVX, KO, PEP]
+  futures: []
+
+data:
+  source: yahoo
+  start: "2008-01-01"
+  end: null
+
+models:
+  trend:
+    weight: 0.55
+    symbols: [SPY, QQQ, IWM, EFA, EEM, TLT, IEF, LQD, GLD, SLV, USO, DBA, DBC, XLE]
+    params: {horizons: [[16, 48], [32, 96], [64, 192]], breakout_window: 120, breakout_weight: 0.25}
+  stat_arb:
+    weight: 0.25
+    pairs: [[XOM, CVX], [KO, PEP], [GLD, SLV]]
+    params: {entry_z: 2.0, exit_z: 0.5, stop_z: 4.0, max_half_life: 30, coint_pvalue: 0.05, coint_window: 252}
+  ml:
+    weight: 0.20
+    symbols: [SPY, QQQ, IWM, EFA, EEM, TLT, IEF, LQD, GLD, SLV, USO, DBA, DBC, XLE]
+    params: {horizon: 5, retrain_every: 21, l2: 100.0, smooth_halflife: 5}
+
+aggregator: {decay_halflife_bars: 5, diversification_multiplier: 1.2}
+portfolio: {method: hrp, cov_method: lw_mp, lookback: 252, cov_halflife: 90}
+sizing: {target_vol: 0.10, max_gross_leverage: 2.0, max_weight: 0.30, kelly_fraction: 0.5, ic: 0.05}
+execution:
+  algo: immediate
+  max_participation: 0.05
+  slippage: {spread: true, sqrt_impact_y: 0.7}
+
+live:
+  poll_seconds: 300
+  bar_interval: 1d

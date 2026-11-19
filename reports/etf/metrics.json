@@ -1,0 +1,91 @@
+{
+  "metrics": {
+    "start": "2008-01-02",
+    "end": "2026-11-18",
+    "years": 18.87748117727584,
+    "total_return": 1.375589854436353,
+    "cagr": 0.04690145920746858,
+    "ann_vol": 0.07631012307490627,
+    "sharpe": 0.6397935230713327,
+    "sortino": 0.8533929853001587,
+    "max_drawdown": -0.16536764057860964,
+    "calmar": 0.28361932868706174,
+    "longest_dd_days": 1286,
+    "hit_rate_daily": 0.5096842105263157,
+    "skew": -0.4668534222057504,
+    "kurtosis": 2.8937981620974185,
+    "var_99_hist": 0.013399157817984534,
+    "psr_vs_0": 0.9970108389442847,
+    "deflated_sharpe": 0.9040360580787732,
+    "final_equity": 2375589.854436353,
+    "n_trades": 10130,
+    "total_commission": 47682.9185,
+    "total_slippage": 145812.76717700914,
+    "cost_drag_ann": 0.006167185256954826,
+    "traded_notional": 620133438.7826242,
+    "avg_gross_leverage": 1.1821188168026067,
+    "elapsed_sec": 74.5092613697052,
+    "bars": 4751,
+    "events": 47941,
+    "borrow_cost": 27461.445674521212,
+    "roll_cost": 0.0,
+    "breaker_trips": 4,
+    "orders": 10937,
+    "rejected_orders": 774
+  },
+  "breaker_trips": [
+    {
+      "ts": "2018-02-05 21:00:00+00:00",
+      "reason": "daily_loss: daily loss -3.28%",
+      "flatten": true
+    },
+    {
+      "ts": "2020-03-10 21:00:00+00:00",
+      "reason": "daily_loss: daily loss -2.68%",
+      "flatten": true
+    },
+    {
+      "ts": "2021-11-26 21:00:00+00:00",
+      "reason": "daily_loss: daily loss -2.60%",
+      "flatten": true
+    },
+    {
+      "ts": "2022-11-10 21:00:00+00:00",
+      "reason": "daily_loss: daily loss -2.97%",
+      "flatten": true
+    }
+  ],
+  "rejections": {
+    "max_order_pct_equity": 48,
+    "margin": 726
+  },
+  "model_diagnostics": {
+    "stat_arb": {
+      "XOM/CVX": {
+        "beta": 0.8711789468756703,
+        "z": -0.8883675016378836,
+        "half_life": 4.43622788829065,
+        "position": 0,
+        "coint_p_trailing": 0.023754810407041416
+      },
+      "KO/PEP": {
+        "beta": 0.8150002739366368,
+        "z": -0.9894668720522551,
+        "half_life": 3.3717112404130885,
+        "position": 0,
+        "coint_p_trailing": 0.877121221093323
+      },
+      "GLD/SLV": {
+        "beta": 0.5351155550981924,
+        "z": 0.5307137680895239,
+        "half_life": 6.253846314649078,
+        "position": 0,
+        "coint_p_trailing": 0.20612778787081776
+      }
+    },
+    "ml": {
+      "retrains": 212,
+      "last_in_sample_ic": 0.07136924893966307
+    }
+  }
+}

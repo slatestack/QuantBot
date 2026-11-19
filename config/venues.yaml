@@ -1,0 +1,21 @@
+# Gateways and routing. Credentials are NEVER stored here - use environment variables.
+gateways:
+  SIM:
+    type: simulated
+  ALPACA:
+    type: alpaca
+    paper: true
+    base_url: https://paper-api.alpaca.markets
+    data_url: https://data.alpaca.markets
+    key_env: APCA_API_KEY_ID
+    secret_env: APCA_API_SECRET_KEY
+  IBKR:
+    type: ibkr
+    host: 127.0.0.1
+    port: 7497          # 7497 = TWS paper, 7496 = TWS live, 4002/4001 = IB Gateway paper/live
+    client_id: 17
+
+# ordered preference per asset class (first connected gateway wins)
+routes:
+  EQUITY: [ALPACA, IBKR, SIM]
+  FUTURE: [IBKR, SIM]

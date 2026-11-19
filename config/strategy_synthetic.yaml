@@ -1,0 +1,42 @@
+# Multi-strategy book on the SYNTHETIC universe (pipeline validation; not evidence of real edge).
+system:
+  name: quantbot-synthetic
+  initial_capital: 1000000
+  rebalance_every: 1
+  rebalance_threshold: 0.01
+  warmup_bars: 260
+
+universe:
+  equities: [SYN_EQ1, SYN_EQ2, SYN_EQ3, SYN_EQ4, SYN_EQ5, SYN_EQ6, SYN_EQ7, SYN_EQ8, SYN_PAIR_X, SYN_PAIR_Y]
+  futures: [CL, GC, SI, HG, ZC, NG]
+
+data:
+  source: synthetic
+  start: "2014-01-01"
+  end: "2024-12-31"
+
+models:
+  trend:
+    weight: 0.40
+    symbols: all
+    params: {horizons: [[8, 24], [16, 48], [32, 96]], breakout_window: 100, breakout_weight: 0.25}
+  stat_arb:
+    weight: 0.25
+    pairs: [[SYN_PAIR_Y, SYN_PAIR_X]]
+    params: {entry_z: 1.75, exit_z: 0.25, stop_z: 4.0, max_half_life: 40}
+  carry:
+    weight: 0.20
+    symbols: futures
+    params: {ry_scale: 0.10, xs_weight: 0.5, seasonal_weight: 0.25}
+  ml:
+    weight: 0.15
+    symbols: all
+    params: {horizon: 5, retrain_every: 21, l2: 50.0, smooth_halflife: 5}
+
+aggregator: {decay_halflife_bars: 5, diversification_multiplier: 1.2}
+portfolio: {method: hrp, cov_method: lw_mp, lookback: 252, cov_halflife: 90}
+sizing: {target_vol: 0.12, max_gross_leverage: 3.0, max_weight: 0.35, kelly_fraction: 0.5, ic: 0.05}
+execution:
+  algo: immediate
+  max_participation: 0.10
+  slippage: {spread: true, sqrt_impact_y: 0.7}

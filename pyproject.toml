@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quantbot"
+version = "0.1.0"
+description = "Event-driven quantitative trading system for equities and commodity futures"
+requires-python = ">=3.10"
+dependencies = ["numpy", "pandas", "scipy", "pyyaml", "pyarrow", "statsmodels", "onnx", "onnxruntime", "matplotlib"]
+
+[tool.setuptools.packages.find]
+include = ["quantbot*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

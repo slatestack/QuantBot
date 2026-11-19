@@ -1,0 +1,13 @@
+numpy>=1.26
+pandas>=2.1
+scipy>=1.11
+pyyaml>=6.0
+pyarrow>=14.0
+statsmodels>=0.14
+onnx>=1.15
+onnxruntime>=1.17
+matplotlib>=3.8
+pytest>=7.4
+# optional
+# redis>=5.0        # Redis Streams event bridge
+# ib_async>=1.0     # Interactive Brokers gateway

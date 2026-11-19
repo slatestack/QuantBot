@@ -1,0 +1,17 @@
+# Commodity futures (micro / mini contracts so that a $1M book can size sensibly).
+# Strategies trade the futures ROOT; the RollManager maps it to the dated contract.
+defaults:
+  asset_class: FUTURE
+  lot_size: 1
+  commission_per_unit: 0.85
+  min_commission: 0.0
+  half_spread_bps: 2.0
+  roll_days_before_fnd: 5
+
+instruments:
+  CL: {exchange: NYMEX, multiplier: 100,  tick_size: 0.01,   initial_margin: 700,  maintenance_margin: 630,  sector: energy,  contract_months: FGHJKMNQUVXZ, trading_hours: "18:00-17:00 America/New_York", session_break: "17:00-18:00", root: MCL}
+  NG: {exchange: NYMEX, multiplier: 1000, tick_size: 0.001,  initial_margin: 450,  maintenance_margin: 400,  sector: energy,  contract_months: FGHJKMNQUVXZ, trading_hours: "18:00-17:00 America/New_York", root: MNG, half_spread_bps: 4.0}
+  GC: {exchange: COMEX, multiplier: 10,   tick_size: 0.1,    initial_margin: 1100, maintenance_margin: 1000, sector: metals,  contract_months: GJMQVZ,       trading_hours: "18:00-17:00 America/New_York", root: MGC}
+  SI: {exchange: COMEX, multiplier: 1000, tick_size: 0.005,  initial_margin: 1600, maintenance_margin: 1450, sector: metals,  contract_months: HKNUZ,        trading_hours: "18:00-17:00 America/New_York", root: SIL}
+  HG: {exchange: COMEX, multiplier: 2500, tick_size: 0.0005, initial_margin: 900,  maintenance_margin: 800,  sector: metals,  contract_months: HKNUZ,        trading_hours: "18:00-17:00 America/New_York", root: MHG}
+  ZC: {exchange: CBOT,  multiplier: 10,   tick_size: 0.125,  initial_margin: 450,  maintenance_margin: 400,  sector: grains,  contract_months: HKNUZ,        trading_hours: "19:00-13:20 America/Chicago", root: XC, half_spread_bps: 3.0}

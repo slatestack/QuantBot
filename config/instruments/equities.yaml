@@ -1,0 +1,46 @@
+# Equity / ETF instrument specs. Unlisted symbols fall back to Instrument defaults.
+defaults:
+  asset_class: EQUITY
+  tick_size: 0.01
+  multiplier: 1
+  lot_size: 1
+  initial_margin_rate: 0.5        # Reg-T
+  maintenance_margin_rate: 0.25
+  commission_per_unit: 0.0035     # IBKR-style tiered approx.
+  min_commission: 0.35
+  half_spread_bps: 1.0
+  short_borrow_rate: 0.0025
+  trading_hours: "09:30-16:00 America/New_York"
+
+instruments:
+  # liquid ETFs (real-data demo universe)
+  SPY: {sector: us_equity, half_spread_bps: 0.2}
+  QQQ: {sector: us_equity, half_spread_bps: 0.3}
+  IWM: {sector: us_equity, half_spread_bps: 0.5}
+  EFA: {sector: intl_equity, half_spread_bps: 0.8}
+  EEM: {sector: em_equity, half_spread_bps: 1.0}
+  TLT: {sector: rates, half_spread_bps: 0.5}
+  IEF: {sector: rates, half_spread_bps: 0.5}
+  LQD: {sector: credit, half_spread_bps: 0.8}
+  GLD: {sector: commodity, half_spread_bps: 0.5}
+  SLV: {sector: commodity, half_spread_bps: 1.0}
+  USO: {sector: commodity, half_spread_bps: 1.5}
+  DBA: {sector: commodity, half_spread_bps: 3.0}
+  DBC: {sector: commodity, half_spread_bps: 2.0}
+  UNG: {sector: commodity, half_spread_bps: 2.0}
+  XLE: {sector: energy, half_spread_bps: 0.7}
+  XOM: {sector: energy, half_spread_bps: 0.8}
+  CVX: {sector: energy, half_spread_bps: 0.8}
+  KO: {sector: staples, half_spread_bps: 0.8}
+  PEP: {sector: staples, half_spread_bps: 0.8}
+  # synthetic universe
+  SYN_EQ1: {}
+  SYN_EQ2: {}
+  SYN_EQ3: {}
+  SYN_EQ4: {}
+  SYN_EQ5: {}
+  SYN_EQ6: {}
+  SYN_EQ7: {}
+  SYN_EQ8: {}
+  SYN_PAIR_X: {}
+  SYN_PAIR_Y: {}

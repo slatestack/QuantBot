@@ -1,0 +1,24 @@
+pre_trade:
+  max_order_notional: 2000000
+  max_order_qty: 100000
+  max_order_pct_equity: 0.40
+  price_collar_pct: 0.05
+  max_position_pct_equity: 0.40
+  max_gross_leverage: 3.0
+  max_net_leverage: 2.0
+  margin_buffer_pct: 0.10
+  max_participation: 0.10
+  restricted_symbols: []
+
+real_time:
+  daily_loss_limit_pct: 0.025     # intraday/daily loss -> cancel, flatten, lock
+  max_drawdown_pct: 0.20          # peak-to-trough hard stop
+  var_confidence: 0.99
+  var_limit_pct: 0.04
+  var_lookback: 250
+  stale_data_seconds: 172800      # daily bars: 2 days; set ~120 for intraday
+
+circuit_breaker:
+  flatten_on_daily_loss: true
+  flatten_on_max_drawdown: true
+  backtest_auto_reset_bars: 5     # backtests only: simulate a manual re-enable after N bars
