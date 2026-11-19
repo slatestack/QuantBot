@@ -7,6 +7,7 @@ watchdog and Prometheus telemetry.
 """
 from __future__ import annotations
 
+import json
 import logging
 import os
 import signal
@@ -89,6 +90,8 @@ class LiveRunner:
             pf = self.system.portfolio
             self.sim.position_lookup = lambda s: pf.positions[s].quantity if s in pf.positions else 0.0
         self.feed = PollingBarFeed(universe_symbols(cfg), self._fetcher())
+        self.state_dir = Path(cfg["live"].get("state_dir", f"state/{cfg['system']['name']}_{mode}_{broker}"))
+        self._n_trades_logged = 0
 
     # ----------------------------------------------------------------- data
     def _fetcher(self):
@@ -117,6 +120,53 @@ class LiveRunner:
         log.info("warm-up replayed %d bars across %d symbols", n, len(frames))
         if self.broker != "sim":
             self._sync_from_broker()
+        else:
+            self._restore_state()
+
+    # ------------------------------------------------------ persistence (sim paper book)
+    def _state_file(self) -> Path:
+        return self.state_dir / "portfolio.json"
+
+    def save_state(self) -> None:
+        """Persist the simulated paper book so it survives restarts. Broker-backed
+        modes don't need this: the broker is the source of truth."""
+        self.state_dir.mkdir(parents=True, exist_ok=True)
+        pf = self.system.portfolio
+        doc = {"saved_at": str(self.clock.now()), "cash": pf.cash, "high_water_mark": pf.high_water_mark,
+               "initial_cash": pf.initial_cash, "breaker": self.system.breaker.state.value,
+               "positions": {s: {"quantity": p.quantity, "avg_price": p.avg_price, "realized_pnl": p.realized_pnl,
+                                 "last_settle": None if p.last_settle != p.last_settle else p.last_settle}
+                             for s, p in pf.positions.items() if not p.is_flat}}
+        tmp = self._state_file().with_suffix(".tmp")
+        tmp.write_text(json.dumps(doc, indent=2))
+        tmp.replace(self._state_file())
+        new_trades = pf.trades[self._n_trades_logged:]
+        if new_trades:
+            f = self.state_dir / "trades.csv"
+            pd.DataFrame([t.__dict__ for t in new_trades]).to_csv(f, mode="a", header=not f.exists(), index=False)
+            self._n_trades_logged = len(pf.trades)
+        f = self.state_dir / "equity.csv"
+        row = pd.DataFrame([{"ts": self.system.last_data_ts, "equity": pf.equity, "cash": pf.cash,
+                             "gross_exposure": pf.gross_exposure, "breaker": self.system.breaker.state.value}])
+        row.to_csv(f, mode="a", header=not f.exists(), index=False)
+
+    def _restore_state(self) -> None:
+        f = self._state_file()
+        if not f.exists():
+            log.info("no saved paper book at %s - starting fresh with %.2f", f, self.system.portfolio.cash)
+            return
+        doc = json.loads(f.read_text())
+        pf = self.system.portfolio
+        pf.cash = float(doc["cash"])
+        for sym, p in doc["positions"].items():
+            pos = pf.position(sym)
+            pos.quantity, pos.avg_price, pos.realized_pnl = p["quantity"], p["avg_price"], p["realized_pnl"]
+            pos.last_price = self.system.trade_price(sym)
+            pos.last_settle = p["last_settle"] if p["last_settle"] is not None else pos.last_price
+        pf.high_water_mark = float(doc["high_water_mark"])
+        pf.mark({s: self.system.trade_price(s) for s in pf.positions}, self.clock.now(), settle=False)
+        self.system.monitor.reset_peak(pf.high_water_mark)
+        log.info("restored paper book from %s: equity=%.2f positions=%s", f, pf.equity, pf.quantities())
 
     def _sync_from_broker(self) -> None:
         gw = self.gateways[0]
@@ -162,6 +212,8 @@ class LiveRunner:
                     if self.feed.last_data_wallclock is not None:
                         self.metrics.last_bar_age.set((self.clock.now() - self.feed.last_data_wallclock).total_seconds())
                 if ev is not None:
+                    if self.broker == "sim":
+                        self.save_state()
                     pf = self.system.portfolio
                     log.info("%s equity=%.2f gross=%.2fx positions=%d breaker=%s", ev.ts, pf.equity,
                              pf.gross_exposure / max(pf.equity, 1e-9), len(pf.quantities()),
@@ -184,4 +236,6 @@ class LiveRunner:
         if self.cfg["live"].get("flatten_on_shutdown"):
             self.system.flatten_all("shutdown")
         self.bus.drain()
+        if self.broker == "sim":
+            self.save_state()
         log.info("stopped. final equity=%.2f", self.system.portfolio.equity)

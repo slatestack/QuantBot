@@ -14,3 +14,4 @@ reports/etf/*
 !reports/etf/metrics.json
 !reports/etf/tearsheet.png
 models/*.json
+state/
